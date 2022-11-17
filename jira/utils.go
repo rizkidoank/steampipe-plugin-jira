@@ -4,17 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	jira "github.com/andygrunwald/go-jira"
+	jiraonprem "github.com/andygrunwald/go-jira/v2/onpremise"
 	"strings"
 	"time"
 
-	"github.com/andygrunwald/go-jira"
 	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
 )
 
 func connect(_ context.Context, d *plugin.QueryData) (*jira.Client, error) {
-
 	// Load connection from cache, which preserves throttling protection etc
 	cacheKey := "atlassian-jira"
 	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
@@ -22,11 +22,14 @@ func connect(_ context.Context, d *plugin.QueryData) (*jira.Client, error) {
 	}
 
 	// Start with an empty Turbot config
-	tokenProvider := jira.BasicAuthTransport{}
-	var baseUrl, username, token string
+	var baseUrl, username, token, instanceType string
 
 	// Prefer config options given in Steampipe
 	jiraConfig := GetConfig(d.Connection)
+
+	if jiraConfig.InstanceType != nil {
+		instanceType = *jiraConfig.InstanceType
+	}
 
 	if jiraConfig.BaseUrl != nil {
 		baseUrl = *jiraConfig.BaseUrl
@@ -38,33 +41,57 @@ func connect(_ context.Context, d *plugin.QueryData) (*jira.Client, error) {
 		token = *jiraConfig.Token
 	}
 
+	if instanceType == "" {
+		return nil, errors.New("'instance_type' must be set in the connection configuration. Edit your connection configuration file and then restart Steampipe")
+	}
+
 	if baseUrl == "" {
 		return nil, errors.New("'base_url' must be set in the connection configuration. Edit your connection configuration file and then restart Steampipe")
 	}
-	if username == "" {
+
+	if username == "" && instanceType == "cloud" {
 		return nil, errors.New("'username' must be set in the connection configuration. Edit your connection configuration file and then restart Steampipe")
 	}
-	tokenProvider.Username = username
 
 	if token == "" {
 		return nil, errors.New("'token' must be set in the connection configuration. Edit your connection configuration file and then restart Steampipe")
 	}
-	tokenProvider.Password = token
 
-	// Create the client
-	client, err := jira.NewClient(tokenProvider.Client(), baseUrl)
-	if err != nil {
-		return nil, fmt.Errorf("error creating Jira client: %s", err.Error())
+	if instanceType == "cloud" {
+		tokenProvider := jira.BasicAuthTransport{}
+		tokenProvider.Username = username
+		tokenProvider.Password = token
+
+		// Create the client
+		client, err := jira.NewClient(tokenProvider.Client(), baseUrl)
+		if err != nil {
+			return nil, fmt.Errorf("error creating Jira client: %s", err.Error())
+		}
+		// Save to cache
+		d.ConnectionManager.Cache.Set(cacheKey, client)
+
+		// Done
+		return client, nil
 	}
 
-	// Save to cache
-	d.ConnectionManager.Cache.Set(cacheKey, client)
+	if instanceType == "data_center" {
+		tokenProvider := jiraonprem.BearerAuthTransport{}
+		tokenProvider.Token = token
+		// Create the client
+		client, err := jira.NewClient(tokenProvider.Client(), baseUrl)
+		if err != nil {
+			return nil, fmt.Errorf("error creating Jira client: %s", err.Error())
+		}
+		// Save to cache
+		d.ConnectionManager.Cache.Set(cacheKey, client)
 
-	// Done
-	return client, nil
+		// Done
+		return client, nil
+	}
+	return nil, nil
 }
 
-//// Constants
+// // Constants
 const (
 	ColumnDescriptionTitle = "Title of the resource."
 )

@@ -3,7 +3,8 @@ module github.com/turbot/steampipe-plugin-jira
 go 1.19
 
 require (
-	github.com/andygrunwald/go-jira v1.13.0
+	github.com/andygrunwald/go-jira v1.16.0
+	github.com/andygrunwald/go-jira/v2 v2.0.0-20221023183302-aea7aec6b799
 	github.com/turbot/steampipe-plugin-sdk/v4 v4.1.8
 )
 
@@ -24,15 +25,16 @@ require (
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/eko/gocache/v3 v3.1.1 // indirect
 	github.com/fatih/color v1.13.0 // indirect
-	github.com/fatih/structs v1.0.0 // indirect
+	github.com/fatih/structs v1.1.0 // indirect
 	github.com/gertd/go-pluralize v0.2.1 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
+	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
 	github.com/golang/glog v1.0.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/go-querystring v0.0.0-20170111101155-53e6ce116135 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.0 // indirect
 	github.com/hashicorp/go-hclog v1.2.2 // indirect
 	github.com/hashicorp/go-plugin v1.4.4 // indirect
@@ -61,7 +63,7 @@ require (
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/stevenle/topsort v0.0.0-20130922064739-8130c1d7596b // indirect
 	github.com/tkrajina/go-reflector v0.5.4 // indirect
-	github.com/trivago/tgo v1.0.1 // indirect
+	github.com/trivago/tgo v1.0.7 // indirect
 	github.com/turbot/go-kit v0.4.0 // indirect
 	github.com/zclconf/go-cty v1.10.0 // indirect
 	go.opentelemetry.io/otel v1.7.0 // indirect
